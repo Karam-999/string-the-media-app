@@ -1,7 +1,21 @@
+import { API_KEY, API_URL } from './config.js';
+
 const global = {
   currentPage: window.location.pathname,
+  search: {
+    term: '',
+    type: '',
+    page: 1,
+    totalPages: 1,
+    totalResults: 0,
+  },
+  api: {
+    apiKey: API_KEY,
+    apiUrl: API_URL,
+  },
 };
-
+console.log(global.currentPage);
+// console.log(global.search.term);
 //highlight active link in navbar
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,6 +157,12 @@ async function movieDetails() {
   const results = await fetchApiData(`movie/${id}`);
   console.log('movie detail', results);
   backgroundImage('movie', results.backdrop_path);
+  if (!results.homepage) {
+    customAlert(
+      'We dont have a homepage link for this Movie right now!',
+      'error'
+    );
+  }
   const detail = document.createElement('div');
   detail.innerHTML = `<div class="details-top">
           <div>
@@ -214,6 +234,12 @@ async function tvDetails() {
   const id = window.location.search.split('=')[1];
   const result = await fetchApiData(`tv/${id}`);
   backgroundImage('show', result.backdrop_path);
+  if (!result.homepage) {
+    customAlert(
+      'We dont have a homepage link for this show right now!',
+      'error'
+    );
+  }
   console.log('tv detail', result);
   const detail = document.createElement('div');
   detail.innerHTML = `<div class="details-top">
@@ -280,7 +306,7 @@ async function tvDetails() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function fetchApiData(endpoint) {
-  const key = '//use your api key';
+  const key = '2222c7541cbbb37ecfbd5587d4554f78';
   const url = 'https://api.themoviedb.org/3';
   showSpinner();
   const movies = await fetch(
@@ -300,6 +326,265 @@ function highlightLink() {
     }
   });
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function searchMoviesAndShows() {
+  const queryString = window.location.search;
+  console.log(window.location.search);
+  const urlParams = new URLSearchParams(queryString);
+  console.log(urlParams.get('type'));
+  console.log(urlParams.get('search-term'));
+  global.search.type = urlParams.get('type');
+  global.search.term = urlParams.get('search-term');
+  if (global.search.term !== '' && global.search.term !== null) {
+    //todo
+    console.log('hi');
+    const { page, results, total_pages, total_results } =
+      await fetchSearchData();
+    global.search.page = page;
+    global.search.totalPages = total_pages;
+    global.search.totalResults = total_results;
+    if (results.length === 0) {
+      customAlert('No results found', 'error'); //no need of this error class here because is already set as default in customAlert function
+      displayPopularShows();
+    } else {
+      displaySearchResults(results);
+      document.querySelector('#search-term').value = ''; //it clear the search input after the search is done
+      console.log(page, results, total_pages, total_results);
+    }
+  } else {
+    customAlert('Please enter the search term!!!', 'error'); //no need of this error class here because is already set as default in customAlert function
+  }
+  // console.log(global.search.term);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function displaySearchResults(results) {
+  console.log('haha', results);
+  ///clear previous results
+  document.querySelector('#search-results').innerHTML = '';
+  document.querySelector('#search-results-heading').innerHTML = '';
+  document.querySelector('#pagination').innerHTML = '';
+
+  results.forEach((result) => {
+    if (result.adult === true) {
+      console.log(result.adult);
+      const addCard = document.createElement('div');
+      addCard.classList.add('card');
+      addCard.innerHTML = `
+      <a href="/${global.search.type}-details.html?id=${result.id}">
+      ${
+        result.poster_path
+          ? `<img
+                src='IMAGE NOT SUPPORTED'
+                class='card-img-top'
+                alt='IT IS A ADULT MOVIE, DON'T WATCH IT'
+                />`
+          : `<img
+                src='images/no-image.jpg'
+                class='card-img-top'
+                alt='IT IS A ADULT MOVIE, DON'T WATCH IT'
+                />`
+      }
+                </a>
+                <div class="card-body">
+                <h5 class="card-title">DON'T WATCH IT: ${
+                  global.search.type === 'movie' ? result.title : result.name
+                }</h5>  
+                <p class="card-text">
+                <small class="text-muted">Release Date: ${
+                  global.search.type === 'movie'
+                    ? result.release_date
+                    : result.first_air_date
+                }</small>
+                </p>
+                </div>`;
+      document.querySelector('#search-results').appendChild(addCard);
+    } else {
+      console.log(result.adult);
+      const addCard = document.createElement('div');
+      addCard.classList.add('card');
+      addCard.innerHTML = `
+            <a href="/${global.search.type}-details.html?id=${result.id}">
+            ${
+              result.poster_path
+                ? `<img
+                src='https://image.tmdb.org/t/p/w500${result.poster_path}'
+                class='card-img-top'
+                alt='${
+                  global.search.type === 'movie' ? result.title : result.name
+                }'
+                />`
+                : `<img
+                src='images/no-image.jpg'
+                class='card-img-top'
+                alt='${
+                  global.search.type === 'movie' ? result.title : result.name
+                }'
+                />`
+            }
+                </a>
+                <div class="card-body">
+                <h5 class="card-title">${
+                  global.search.type === 'movie' ? result.title : result.name
+                }</h5>
+                <p class="card-text">
+                <small class="text-muted">${
+                  global.search.type === 'movie'
+                    ? 'Release Date: '
+                    : 'Air Date: '
+                }${
+        global.search.type === 'movie'
+          ? result.release_date
+          : result.first_air_date
+      }</small>
+                </p>
+                </div>`;
+      document.querySelector(
+        '#search-results-heading'
+      ).innerHTML = `${results.length} of ${global.search.totalResults} results for ${global.search.term}`;
+      document.querySelector('#search-results').appendChild(addCard);
+      // preventDefault();
+    }
+  });
+  displayPagination();
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function displayPagination() {
+  const paginationDiv = document.createElement('div');
+  paginationDiv.classList.add('pagination');
+  paginationDiv.innerHTML = `
+          <button class="btn btn-primary" id="prev">Prev</button>
+          <button class="btn btn-primary" id="next">Next</button>
+          <div class="page-counter">Page ${global.search.page} of ${global.search.totalPages}</div>`;
+  document.querySelector('#pagination').appendChild(paginationDiv);
+  const prevButton = document.querySelector('#prev');
+  if (global.search.page === 1) {
+    prevButton.disabled = true;
+  }
+  const nextButton = document.querySelector('#next');
+  if (global.search.page === global.search.totalPages) {
+    nextButton.disabled = true;
+  }
+  nextButton.addEventListener('click', async () => {
+    global.search.page++;
+    const { page, totalPages, results } = await fetchSearchData();
+    displaySearchResults(results);
+  });
+  prevButton.addEventListener('click', async () => {
+    global.search.page--;
+    const { page, totalPages, results } = await fetchSearchData();
+    displaySearchResults(results);
+  });
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function fetchSearchData() {
+  const key = global.api.apiKey;
+  const url = global.api.apiUrl;
+  showSpinner();
+  const movies = await fetch(
+    `${url}/search/${global.search.type}?api_key=${key}&language=en-US&query=${global.search.term}&page=${global.search.page}` //searches either movie or tv base on type
+    // `${url}/search/multi?api_key=${key}&language=en-US&query=${global.search.term}`//Use multi search when you want to search for movies, TV shows and people in a single request.
+  );
+  const resp = await movies.json();
+  hideSpinner();
+  return resp;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+function customAlert(message, className = 'error') {
+  const alert = document.createElement('div');
+  alert.classList.add('alert', className);
+  alert.appendChild(document.createTextNode(message));
+  document.querySelector('#alert').appendChild(alert);
+  setTimeout(() => {
+    alert.remove();
+  }, 3000);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////
+async function nowPlayingSwiperMovies() {
+  const nowPlayingMovies = await fetchApiData('movie/now_playing');
+  const { results } = nowPlayingMovies;
+  console.log('ha', results);
+  results.forEach((result) => {
+    if (result.title !== 'Maalikaya') {
+      const div = document.createElement('div');
+      div.classList.add('swiper-slide');
+      div.innerHTML = `
+      <a href="movie-details.html?id=${result.id}">
+      <img src="${
+        result.poster_path
+          ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
+          : './images/no-image.jpg'
+      }" alt="Movie Title" />
+        </a>
+        <h4 class="swiper-rating">
+        <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(
+          1
+        )}
+        <p class="text-muted">Release Date: ${result.release_date}</p>
+        <h2>${result.title}</h2>
+        </h4>`;
+      document.querySelector('.swiper-wrapper').appendChild(div);
+      initSwiper();
+    }
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////
+async function nowPlayingSwiperShows() {
+  const nowPlayingShows = await fetchApiData('tv/airing_today');
+  const { results } = nowPlayingShows;
+  console.log('hahahah', results);
+  results.forEach((result) => {
+    const div = document.createElement('div');
+    div.classList.add('swiper-slide');
+    div.innerHTML = `
+      <a href="tv-details.html?id=${result.id}">
+      <img src="${
+        result.poster_path
+          ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
+          : './images/no-image.jpg'
+      }" alt="TV Show Title" />
+        </a>
+        <h4 class="swiper-rating">
+        <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(
+          1
+        )}
+
+        <h2>${result.name}</h2>
+        </h4>`;
+    document.querySelector('.swiper-wrapper').appendChild(div);
+    initSwiper();
+  });
+}
+function initSwiper() {
+  const swiper = new Swiper('.swiper', {
+    slidesPerView: 1,
+    speed: 400,
+    freeMode: true,
+    spaceBetween: 30,
+    loop: true,
+    autoplay: {
+      delay: 2000,
+      disableOnInteraction: false,
+    },
+    breakpoints: {
+      500: {
+        slidesPerView: 2,
+        spaceBetween: 50,
+      },
+      768: {
+        slidesPerView: 3,
+        spaceBetween: 30,
+      },
+      1024: {
+        slidesPerView: 4,
+        spaceBetween: 20,
+      },
+    },
+  });
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function init() {
   switch (global.currentPage) {
@@ -307,6 +592,7 @@ function init() {
     case '/index.html':
       console.log('homePage');
       displayPopularMovies();
+      nowPlayingSwiperMovies();
       break;
 
     case '/movie-details.html':
@@ -314,11 +600,13 @@ function init() {
       break;
 
     case '/search.html':
-      console.log('searchPage');
+      searchMoviesAndShows();
+      // displayPopularShows();
       break;
 
     case '/shows.html':
       displayPopularShows();
+      nowPlayingSwiperShows();
       break;
 
     case '/tv-details.html':

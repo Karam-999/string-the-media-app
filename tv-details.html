@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="lib/fontawesome.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/spinner.css" />
-    <script src="js/script.js" defer></script>
+    <script src="js/script.js" type="module" defer></script>
     <title>String. | Show Details</title>
   </head>
   <body>
@@ -38,7 +38,11 @@
         <a class="btn" href="shows.html">Back To TV Shows</a>
       </div>
       <!-- Show Details Output -->
-      <div id="show-details"></div>
+      <div id="show-details">
+        <div class="back"></div>
+        <!--dummy class added to make space for alert div-->
+        <div id="alert"></div>
+      </div>
     </section>
 
     <!-- Footer -->
