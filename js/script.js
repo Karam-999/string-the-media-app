@@ -1,15 +1,7 @@
-// Try to import config.js for local development, fallback to env variables for production
-let API_KEY, API_URL;
-
-try {
-  const config = await import('./config.js');
-  API_KEY = config.API_KEY;
-  API_URL = config.API_URL;
-} catch {
-  // Production: use environment variables
-  API_KEY = import.meta.env.VITE_API_KEY;
-  API_URL = import.meta.env.VITE_API_URL || 'https://api.themoviedb.org/3';
-}
+// Configuration: Use environment variables (works in both dev and production)
+const API_KEY =
+  import.meta.env.VITE_API_KEY || '2222c7541cbbb37ecfbd5587d4554f78';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.themoviedb.org/3';
 
 const global = {
   currentPage: window.location.pathname,
