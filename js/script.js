@@ -539,57 +539,53 @@ function customAlert(message, className = 'error') {
 async function nowPlayingSwiperMovies() {
   const nowPlayingMovies = await fetchApiData('movie/now_playing');
   const { results } = nowPlayingMovies;
-  console.log('ha', results);
+
   results.forEach((result) => {
     if (result.title !== 'Maalikaya') {
       const div = document.createElement('div');
       div.classList.add('swiper-slide');
       div.innerHTML = `
       <a href="movie-details.html?id=${result.id}">
-      <img src="${
-        result.poster_path
-          ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
-          : './images/no-image.jpg'
-      }" alt="Movie Title" />
-        </a>
-        <h4 class="swiper-rating">
-        <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(
-          1,
-        )}
-        <p class="text-muted">Release Date: ${result.release_date}</p>
-        <h2>${result.title}</h2>
-        </h4>`;
+        <img src="${
+          result.poster_path
+            ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
+            : './images/no-image.jpg'
+        }" alt="${result.title}" />
+      </a>
+      <h4 class="swiper-rating">
+        <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(1)}
+      </h4>`;
+
       document.querySelector('.swiper-wrapper').appendChild(div);
-      initSwiper();
     }
   });
+
+  initSwiper(); 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 async function nowPlayingSwiperShows() {
   const nowPlayingShows = await fetchApiData('tv/airing_today');
   const { results } = nowPlayingShows;
-  console.log('hahahah', results);
+
   results.forEach((result) => {
     const div = document.createElement('div');
     div.classList.add('swiper-slide');
     div.innerHTML = `
       <a href="tv-details.html?id=${result.id}">
-      <img src="${
-        result.poster_path
-          ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
-          : './images/no-image.jpg'
-      }" alt="TV Show Title" />
-        </a>
-        <h4 class="swiper-rating">
-        <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(
-          1,
-        )}
+        <img src="${
+          result.poster_path
+            ? `https://image.tmdb.org/t/p/w500${result.poster_path}`
+            : './images/no-image.jpg'
+        }" alt="${result.name}" />
+      </a>
+      <h4 class="swiper-rating">
+        <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(1)}
+      </h4>`;
 
-        <h2>${result.name}</h2>
-        </h4>`;
     document.querySelector('.swiper-wrapper').appendChild(div);
-    initSwiper();
   });
+
+  initSwiper();
 }
 function initSwiper() {
   const swiper = new Swiper('.swiper', {
