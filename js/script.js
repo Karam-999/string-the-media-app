@@ -1,8 +1,4 @@
-const API_KEY = '2222c7541cbbb37ecfbd5587d4554f78';
-const API_URL='https://api.themoviedb.org/3'
-
 const global = {
-  currentPage: window.location.pathname,
   search: {
     term: '',
     type: '',
@@ -11,10 +7,47 @@ const global = {
     totalResults: 0,
   },
   api: {
-    apiKey: API_KEY,
-    apiUrl: API_URL,
+    apiKey: import.meta.env.VITE_TMDB_API_KEY,
+    apiUrl: import.meta.env.VITE_TMDB_API_URL,
   },
 };
+
+function getCurrentPage() {
+  const path = window.location.pathname;
+  if (path === '/' || path.endsWith('index.html')) return '/';
+  if (path.endsWith('shows.html')) return '/shows.html';
+  if (path.endsWith('movie-details.html')) return '/movie-details.html';
+  if (path.endsWith('tv-details.html')) return '/tv-details.html';
+  if (path.endsWith('search.html')) return '/search.html';
+  return '/';
+}
+
+// Update the init function to use the helper
+// function init() {
+//   const page = getCurrentPage(); // Use the helper function here
+
+//   switch (page) {
+//     case '/':
+//       displayPopularMovies();
+//       nowPlayingSwiperMovies();
+//       break;
+//     case '/shows.html':
+//       displayPopularShows();
+//       nowPlayingSwiperShows();
+//       break;
+//     case '/movie-details.html':
+//       movieDetails();
+//       break;
+//     case '/tv-details.html':
+//       tvDetails();
+//       break;
+//     case '/search.html':
+//       searchMoviesAndShows();
+//       break;
+//   }
+//   highlightLink();
+// }
+
 console.log(global.currentPage);
 // console.log(global.search.term);
 //highlight active link in navbar
@@ -307,8 +340,8 @@ async function tvDetails() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 async function fetchApiData(endpoint) {
-  const key = '2222c7541cbbb37ecfbd5587d4554f78';
-  const url = 'https://api.themoviedb.org/3';
+  const key = global.api.apiKey;
+  const url = global.api.apiUrl;
   showSpinner();
   const movies = await fetch(
     `${url}/${endpoint}?api_key=${key}&language=en-US`,
@@ -318,12 +351,13 @@ async function fetchApiData(endpoint) {
   return resp;
 }
 function highlightLink() {
-  const link = document.querySelectorAll('.nav-link');
-  link.forEach((element) => {
-    if (element.getAttribute('href') === global.currentPage) {
+  const links = document.querySelectorAll('.nav-link');
+  const currentPage = getCurrentPage(); // Use the helper function, not global.currentPage
+
+  links.forEach((element) => {
+    // Check if the href matches the current page
+    if (element.getAttribute('href') === currentPage) {
       element.classList.add('active');
-      console.log(`Active link: ${element.getAttribute('href')}`);
-      console.log(`Current page: ${global.currentPage}`);
     }
   });
 }
@@ -587,35 +621,29 @@ function initSwiper() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function init() {
-  switch (global.currentPage) {
+  const page = getCurrentPage(); // Use the helper function here
+
+  switch (page) {
     case '/':
-    case '/index.html':
-      console.log('homePage');
       displayPopularMovies();
       nowPlayingSwiperMovies();
       break;
-
-    case '/movie-details.html':
-      movieDetails();
-      break;
-
-    case '/search.html':
-      searchMoviesAndShows();
-      // displayPopularShows();
-      break;
-
     case '/shows.html':
       displayPopularShows();
       nowPlayingSwiperShows();
       break;
-
+    case '/movie-details.html':
+      movieDetails();
+      break;
     case '/tv-details.html':
       tvDetails();
+      break;
+    case '/search.html':
+      searchMoviesAndShows();
       break;
   }
   highlightLink();
 }
-
 document.addEventListener('DOMContentLoaded', init);
 
 function addCommasToNumber(num) {
