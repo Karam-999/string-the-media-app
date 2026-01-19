@@ -1,7 +1,5 @@
-// Configuration: Use environment variables (works in both dev and production)
-const API_KEY =
-  import.meta.env.VITE_API_KEY || '2222c7541cbbb37ecfbd5587d4554f78';
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.themoviedb.org/3';
+const API_KEY = '2222c7541cbbb37ecfbd5587d4554f78';
+const API_URL='https://api.themoviedb.org/3'
 
 const global = {
   currentPage: window.location.pathname,
@@ -163,7 +161,7 @@ async function movieDetails() {
   if (!results.homepage) {
     customAlert(
       'We dont have a homepage link for this Movie right now!',
-      'error'
+      'error',
     );
   }
   const detail = document.createElement('div');
@@ -210,10 +208,10 @@ async function movieDetails() {
           <h2>Movie Info</h2>
           <ul>
             <li><span class="text-secondary">Budget:</span> $${addCommasToNumber(
-              results.budget
+              results.budget,
             )}</li>
             <li><span class="text-secondary">Revenue:</span> $${addCommasToNumber(
-              results.revenue
+              results.revenue,
             )}</li>
             <li><span class="text-secondary">Runtime:</span> ${
               results.runtime
@@ -240,7 +238,7 @@ async function tvDetails() {
   if (!result.homepage) {
     customAlert(
       'We dont have a homepage link for this show right now!',
-      'error'
+      'error',
     );
   }
   console.log('tv detail', result);
@@ -288,7 +286,7 @@ async function tvDetails() {
             <h2>Show Info</h2>
             <ul>
               <li><span class="text-secondary">Number of Episodes:</span> ${addCommasToNumber(
-                result.number_of_episodes
+                result.number_of_episodes,
               )}</li>
               <li><span class="text-secondary">Last Episode To Air:</span> ${
                 result.last_episode_to_air.name
@@ -313,7 +311,7 @@ async function fetchApiData(endpoint) {
   const url = 'https://api.themoviedb.org/3';
   showSpinner();
   const movies = await fetch(
-    `${url}/${endpoint}?api_key=${key}&language=en-US`
+    `${url}/${endpoint}?api_key=${key}&language=en-US`,
   );
   const resp = await movies.json();
   hideSpinner();
@@ -436,15 +434,14 @@ function displaySearchResults(results) {
                     ? 'Release Date: '
                     : 'Air Date: '
                 }${
-        global.search.type === 'movie'
-          ? result.release_date
-          : result.first_air_date
-      }</small>
+                  global.search.type === 'movie'
+                    ? result.release_date
+                    : result.first_air_date
+                }</small>
                 </p>
                 </div>`;
-      document.querySelector(
-        '#search-results-heading'
-      ).innerHTML = `${results.length} of ${global.search.totalResults} results for ${global.search.term}`;
+      document.querySelector('#search-results-heading').innerHTML =
+        `${results.length} of ${global.search.totalResults} results for ${global.search.term}`;
       document.querySelector('#search-results').appendChild(addCard);
       // preventDefault();
     }
@@ -485,7 +482,7 @@ async function fetchSearchData() {
   const url = global.api.apiUrl;
   showSpinner();
   const movies = await fetch(
-    `${url}/search/${global.search.type}?api_key=${key}&language=en-US&query=${global.search.term}&page=${global.search.page}` //searches either movie or tv base on type
+    `${url}/search/${global.search.type}?api_key=${key}&language=en-US&query=${global.search.term}&page=${global.search.page}`, //searches either movie or tv base on type
     // `${url}/search/multi?api_key=${key}&language=en-US&query=${global.search.term}`//Use multi search when you want to search for movies, TV shows and people in a single request.
   );
   const resp = await movies.json();
@@ -523,7 +520,7 @@ async function nowPlayingSwiperMovies() {
         </a>
         <h4 class="swiper-rating">
         <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(
-          1
+          1,
         )}
         <p class="text-muted">Release Date: ${result.release_date}</p>
         <h2>${result.title}</h2>
@@ -551,7 +548,7 @@ async function nowPlayingSwiperShows() {
         </a>
         <h4 class="swiper-rating">
         <i class="fas fa-star text-secondary"></i> ${result.vote_average.toFixed(
-          1
+          1,
         )}
 
         <h2>${result.name}</h2>
